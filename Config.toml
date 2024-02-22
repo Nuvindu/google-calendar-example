@@ -1,0 +1,5 @@
+[nuvindu.calendar_project]
+clientId = "put-the-client-id-here"
+clientSecret = "put-the-client-secret-here"
+refreshToken = "put-the-refresh-token-here"
+refreshUrl = "https://oauth2.googleapis.com/token"
