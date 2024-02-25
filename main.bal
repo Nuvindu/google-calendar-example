@@ -1,5 +1,5 @@
-import ballerinax/googleapis.gcalendar;
 import ballerina/io;
+import ballerinax/googleapis.gcalendar;
 
 configurable string clientId = ?;
 configurable string clientSecret = ?;
@@ -16,40 +16,94 @@ gcalendar:ConnectionConfig config = {
 };
 
 public function main() returns error? {
-    gcalendar:Client calendar = check new(config);
+    gcalendar:Client calendar = check new (config);
 
     // create a calendar
     gcalendar:Calendar calendarResult = check calendar->/calendars.post({
         summary: "Work Schedule"
     });
 
-    io:println("Calendar ID: ", calendarResult);
     string calendarId = <string>calendarResult.id;
 
     // create an event
-    gcalendar:Event sprintEvent = check calendar->/calendars/[calendarId]/events.post(
+    gcalendar:Event event = check calendar->/calendars/[calendarId]/events.post(
         payload =
             {
-                'start: {
-                    dateTime: "2024-02-22T10:00:00+00:00",
-                    timeZone: "UTC"
-                },
-                end: {
-                    dateTime: "2024-02-22T12:00:00+00:00",
-                    timeZone: "UTC"
-                },
-                summary: "Sprint Meeting",
-                conferenceData: {
-                    createRequest: {
-                        requestId: "sofhoi4oin",
-                        conferenceSolutionKey: {
-                            'type: "hangoutsMeet"
-                        }
+            'start: {
+                dateTime: "2024-02-22T10:00:00+00:00",
+                timeZone: "UTC"
+            },
+            end: {
+                dateTime: "2024-02-22T11:00:00+00:00",
+                timeZone: "UTC"
+            },
+            summary: "Project Progress Meeting",
+            conferenceData: {
+                createRequest: {
+                    requestId: "sofhoi4oin",
+                    conferenceSolutionKey: {
+                        'type: "hangoutsMeet"
                     }
                 }
-            },
+            }
+        },
         conferenceDataVersion = 1
     );
 
-    io:println("Event ID: ", sprintEvent);
+    string eventId = <string>event.id;
+
+    gcalendar:Event|gcalendar:Error updatedEvent = calendar->/calendars/[calendarId]/events/[eventId].put({
+        'start: {
+            dateTime: "2024-02-22T10:00:00+00:00",
+            timeZone: "UTC"
+        },
+        end: {
+            dateTime: "2024-02-22T11:00:00+00:00",
+            timeZone: "UTC"
+        },
+        summary: "Project Progress Meeting - Team A",
+        attendees: [
+            {
+                "email": "team-member1@gmail.com"
+            },
+            {
+                "email": "team-member2@gmail.com"
+            }
+        ]
+    });
+    io:println("Updated Event: ", updatedEvent);
+
+    gcalendar:Event|error reminderEvent = calendar->/calendars/[calendarId]/events/[eventId].put({
+        'start: {
+            dateTime: "2024-02-22T10:00:00+00:00",
+            timeZone: "UTC"
+        },
+        end: {
+            dateTime: "2024-02-22T11:00:00+00:00",
+            timeZone: "UTC"
+        },
+        summary: "Project Progress Meeting - Team A",
+        attendees: [
+            {
+                "email": "team-member1@gmail.com"
+            },
+            {
+                "email": "team-member2@gmail.com"
+            }
+        ],
+        reminders: {
+            useDefault: false,
+            overrides: [
+                {
+                    method: "popup",
+                    minutes: 15
+                },
+                {
+                    method: "email",
+                    minutes: 30
+                }
+            ]
+        }
+    });
+    io:println("Reminder Event: ", reminderEvent);
 }
