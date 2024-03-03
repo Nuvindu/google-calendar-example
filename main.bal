@@ -1,22 +1,24 @@
 import ballerina/io;
 import ballerinax/googleapis.gcalendar;
+import ballerinax/googleapis.gmail;
 
 configurable string clientId = ?;
 configurable string clientSecret = ?;
 configurable string refreshToken = ?;
-configurable string refreshUrl = ?;
+configurable string email = ?;
 
-gcalendar:ConnectionConfig config = {
-    auth: {
-        clientId: clientId,
-        clientSecret: clientSecret,
-        refreshToken: refreshToken,
-        refreshUrl: refreshUrl
-    }
-};
+configurable string gmailClientId = ?;
+configurable string gmailClientSecret = ?;
+configurable string gmailRefreshToken = ?;
 
 public function main() returns error? {
-    gcalendar:Client calendar = check new (config);
+    gcalendar:Client calendar = check new ({
+        auth: {
+            clientId,
+            clientSecret,
+            refreshToken
+        }
+    });
 
     // create a calendar
     gcalendar:Calendar calendarResult = check calendar->/calendars.post({
@@ -30,11 +32,11 @@ public function main() returns error? {
         payload =
             {
             'start: {
-                dateTime: "2024-02-22T10:00:00+00:00",
+                dateTime: "2024-03-04T10:00:00+00:00",
                 timeZone: "UTC"
             },
             end: {
-                dateTime: "2024-02-22T11:00:00+00:00",
+                dateTime: "2024-03-04T11:00:00+00:00",
                 timeZone: "UTC"
             },
             summary: "Project Progress Meeting",
@@ -54,11 +56,11 @@ public function main() returns error? {
 
     gcalendar:Event|gcalendar:Error updatedEvent = calendar->/calendars/[calendarId]/events/[eventId].put({
         'start: {
-            dateTime: "2024-02-22T10:00:00+00:00",
+            dateTime: "2024-03-04T10:00:00+00:00",
             timeZone: "UTC"
         },
         end: {
-            dateTime: "2024-02-22T11:00:00+00:00",
+            dateTime: "2024-03-04T11:00:00+00:00",
             timeZone: "UTC"
         },
         summary: "Project Progress Meeting - Team A",
@@ -75,11 +77,11 @@ public function main() returns error? {
 
     gcalendar:Event|error reminderEvent = calendar->/calendars/[calendarId]/events/[eventId].put({
         'start: {
-            dateTime: "2024-02-22T10:00:00+00:00",
+            dateTime: "2024-03-04T10:00:00+00:00",
             timeZone: "UTC"
         },
         end: {
-            dateTime: "2024-02-22T11:00:00+00:00",
+            dateTime: "2024-03-04T11:00:00+00:00",
             timeZone: "UTC"
         },
         summary: "Project Progress Meeting - Team A",
@@ -106,4 +108,24 @@ public function main() returns error? {
         }
     });
     io:println("Reminder Event: ", reminderEvent);
+
+    gmail:Client gmail = check new ({
+        auth: {
+            clientId: gmailClientId,
+            clientSecret: gmailClientSecret,
+            refreshToken: gmailRefreshToken
+        }
+    });
+
+    string filter = string `from: ${email}`;
+    gmail:ListMessagesResponse messageList = check gmail->/users/me/messages(q = filter);
+    gmail:Message[]? messages = messageList.messages;
+    if messages !is () {
+        string id = messages[0].id;
+        gmail:Message message = check gmail->/users/me/messages/[id].get();
+        gmail:MessagePart payload = <gmail:MessagePart>message.payload;
+        gmail:MessagePart[] messagePart = (<gmail:MessagePart[]>(<gmail:MessagePart[]>payload.parts)[0].parts);
+        string invitation = <string>messagePart[0].data;
+        io:println("Calendar Invitation: ", invitation);
+    }
 }
