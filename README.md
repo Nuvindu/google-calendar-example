@@ -4,11 +4,15 @@
 
 2. Add the obtained credentials into the `Config.toml` file in your Ballerina project.
 
-    ```bash
-    clientId = "put-the-client-id-here"
-    clientSecret = "put-the-client-secret-here"
-    refreshToken = "put-the-refresh-token-here"
-    refreshUrl = "https://oauth2.googleapis.com/token"
+    ```toml
+    clientId = "client-id"
+    clientSecret = "client-secret"
+    refreshToken = "refresh-token"
+    email = "email-address-of-the-user"
+
+    gmailClientId = "client-id-of-the-invitee"
+    gmailClientSecret = "client-secret-of-the-invitee"
+    gmailRefreshToken = "refresh-token-of-the-invitee"
     ```
 
 3. If you are new to Ballerina, download and install the latest version from [here](https://ballerina.io/downloads/).
