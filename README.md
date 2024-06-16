@@ -13,6 +13,7 @@
     gmailClientId = "client-id-of-the-invitee"
     gmailClientSecret = "client-secret-of-the-invitee"
     gmailRefreshToken = "refresh-token-of-the-invitee"
+    attendees = [] # Add the email addresses of the attendees here
     ```
 
 3. If you are new to Ballerina, download and install the latest version from [here](https://ballerina.io/downloads/).
