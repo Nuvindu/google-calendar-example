@@ -52,6 +52,34 @@ public function main() returns error? {
         conferenceDataVersion = 1
     );
 
+    // check the availability of attendees before sending invitations
+    gcalendar:FreeBusyRequestItem[] items = [];
+    foreach string attendee in attendees {
+        items.push({id: attendee});
+    }
+    gcalendar:FreeBusyRequest freeBusyRequest = {
+        timeMin: "2024-06-17T10:00:00+00:00",
+        timeMax: "2024-06-17T11:00:00+00:00",
+        timeZone: "UTC",
+        items: items
+    };
+
+    gcalendar:FreeBusyResponse freeBusyResponse = check calendar->/freeBusy.post(freeBusyRequest);
+    string[] availableAttendees = [];
+    record {|gcalendar:FreeBusyCalendar...;|}? calendarItems = freeBusyResponse.calendars;
+    if calendarItems !is () {
+        foreach string attendee in attendees {
+            gcalendar:FreeBusyCalendar attendeeCalendar = <gcalendar:FreeBusyCalendar>calendarItems[attendee];
+            if attendeeCalendar.busy == [] {
+                availableAttendees.push(attendee);
+            }
+        }
+    }
+    gcalendar:EventAttendee[] eventAttendees = [];
+    foreach string item in availableAttendees {
+        eventAttendees.push({email: item});
+    }
+    
     string eventId = <string>event.id;
 
     gcalendar:Event|gcalendar:Error updatedEvent = calendar->/calendars/[calendarId]/events/[eventId].put({
