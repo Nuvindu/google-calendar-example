@@ -10,6 +10,7 @@ configurable string email = ?;
 configurable string gmailClientId = ?;
 configurable string gmailClientSecret = ?;
 configurable string gmailRefreshToken = ?;
+configurable string[] attendees = ?;
 
 public function main() returns error? {
     gcalendar:Client calendar = check new ({
@@ -32,11 +33,11 @@ public function main() returns error? {
         payload =
             {
             'start: {
-                dateTime: "2024-03-04T10:00:00+00:00",
+                dateTime: "2024-06-17T10:00:00+00:00",
                 timeZone: "UTC"
             },
             end: {
-                dateTime: "2024-03-04T11:00:00+00:00",
+                dateTime: "2024-06-17T11:00:00+00:00",
                 timeZone: "UTC"
             },
             summary: "Project Progress Meeting",
@@ -84,43 +85,29 @@ public function main() returns error? {
 
     gcalendar:Event|gcalendar:Error updatedEvent = calendar->/calendars/[calendarId]/events/[eventId].put({
         'start: {
-            dateTime: "2024-03-04T10:00:00+00:00",
+            dateTime: "2024-06-17T10:00:00+00:00",
             timeZone: "UTC"
         },
         end: {
-            dateTime: "2024-03-04T11:00:00+00:00",
+            dateTime: "2024-06-17T11:00:00+00:00",
             timeZone: "UTC"
         },
         summary: "Project Progress Meeting - Team A",
-        attendees: [
-            {
-                "email": "team-member1@gmail.com"
-            },
-            {
-                "email": "team-member2@gmail.com"
-            }
-        ]
+        attendees: eventAttendees
     });
     io:println("Updated Event: ", updatedEvent);
 
     gcalendar:Event|error reminderEvent = calendar->/calendars/[calendarId]/events/[eventId].put({
         'start: {
-            dateTime: "2024-03-04T10:00:00+00:00",
+            dateTime: "2024-06-17T10:00:00+00:00",
             timeZone: "UTC"
         },
         end: {
-            dateTime: "2024-03-04T11:00:00+00:00",
+            dateTime: "2024-06-17T11:00:00+00:00",
             timeZone: "UTC"
         },
         summary: "Project Progress Meeting - Team A",
-        attendees: [
-            {
-                "email": "team-member1@gmail.com"
-            },
-            {
-                "email": "team-member2@gmail.com"
-            }
-        ],
+        attendees: eventAttendees,
         reminders: {
             useDefault: false,
             overrides: [
@@ -151,7 +138,10 @@ public function main() returns error? {
     if messages !is () {
         string id = messages[0].id;
         gmail:Message message = check gmail->/users/me/messages/[id].get();
-        gmail:MessagePart payload = <gmail:MessagePart>message.payload;
+        gmail:MessagePart? payload = message.payload;
+        if payload is () {
+            return error("Payload is empty");
+        }
         gmail:MessagePart[] messagePart = (<gmail:MessagePart[]>(<gmail:MessagePart[]>payload.parts)[0].parts);
         string invitation = <string>messagePart[0].data;
         io:println("Calendar Invitation: ", invitation);
