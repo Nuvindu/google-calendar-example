@@ -62,7 +62,7 @@ public function main() returns error? {
         timeMin: "2024-06-17T10:00:00+00:00",
         timeMax: "2024-06-17T11:00:00+00:00",
         timeZone: "UTC",
-        items: items
+        items
     };
 
     gcalendar:FreeBusyResponse freeBusyResponse = check calendar->/freeBusy.post(freeBusyRequest);
@@ -83,7 +83,7 @@ public function main() returns error? {
     
     string eventId = <string>event.id;
 
-    gcalendar:Event|gcalendar:Error updatedEvent = calendar->/calendars/[calendarId]/events/[eventId].put({
+    gcalendar:Event updatedEvent = check calendar->/calendars/[calendarId]/events/[eventId].put({
         'start: {
             dateTime: "2024-06-17T10:00:00+00:00",
             timeZone: "UTC"
@@ -97,7 +97,7 @@ public function main() returns error? {
     });
     io:println("Updated Event: ", updatedEvent);
 
-    gcalendar:Event|error reminderEvent = calendar->/calendars/[calendarId]/events/[eventId].put({
+    gcalendar:Event reminderEvent = check calendar->/calendars/[calendarId]/events/[eventId].put({
         'start: {
             dateTime: "2024-06-17T10:00:00+00:00",
             timeZone: "UTC"
